@@ -1,0 +1,27 @@
+# Example versions.yaml manifest
+# This file demonstrates the structure of a version manifest
+
+manifest_version: "1.0"
+
+# Project information (required)
+project:
+  name: "simple-example-app"
+  version: "1.2.3"
+
+# Database schema versions (optional)
+Schemas:
+  postgres_main: "45"
+  redis_cache: "3"
+
+# API versions (optional)
+APIs:
+  rest_v1: "1.15.0"
+
+# Component versions (optional)
+Components:
+  aigentchat: "3.4.1"
+
+# Custom metadata (optional)
+Custom:
+  environment: "development"
+  region: "us-west-2"

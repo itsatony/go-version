@@ -1,0 +1,147 @@
+# go-version Manifest Template
+# Copy this file to your project root as versions.yaml
+# Documentation: https://github.com/itsatony/go-version
+
+# Manifest format version (required)
+manifest_version: "1.0"
+
+# Project information (required)
+project:
+  # Application name
+  name: "my-application"
+
+  # Semantic version (major.minor.patch)
+  # Examples: "1.0.0", "2.3.1-beta", "1.0.0-rc.1+build.123"
+  version: "0.1.0"
+
+# Database schema versions (optional)
+# Track schema migration versions for each database
+schemas:
+  # Example: PostgreSQL main database
+  postgres_main: "1"
+
+  # Example: PostgreSQL analytics database
+  # postgres_analytics: "5"
+
+  # Example: Redis cache schema
+  # redis_cache: "2"
+
+  # Example: MongoDB
+  # mongodb_primary: "3"
+
+# API versions (optional)
+# Track versions of different API endpoints or protocols
+apis:
+  # Example: REST API v1
+  rest_v1: "1.0.0"
+
+  # Example: REST API v2
+  # rest_v2: "2.0.0"
+
+  # Example: gRPC API
+  # grpc: "1.0.0"
+
+  # Example: GraphQL API
+  # graphql: "1.0.0"
+
+  # Example: WebSocket API
+  # websocket: "1.0.0"
+
+# Component versions (optional)
+# Track versions of internal components or microservices
+components:
+  # Example: Chat service
+  # chat_service: "1.5.2"
+
+  # Example: Notification service
+  # notification_service: "2.1.0"
+
+  # Example: Authentication module
+  # auth_module: "3.0.1"
+
+  # Example: AI/ML model version
+  # ml_model: "4.2.0"
+
+# Custom metadata (optional)
+# Add any custom key-value pairs for your application
+custom:
+  # Example: Deployment environment
+  environment: "development"
+
+  # Example: Cloud region
+  # region: "us-east-1"
+
+  # Example: Feature flags version
+  # feature_flags_version: "2023-10-15"
+
+  # Example: Configuration schema version
+  # config_schema: "2"
+
+  # Example: License information
+  # license: "MIT"
+
+  # Example: Support contact
+  # support_email: "support@example.com"
+
+# Usage Examples:
+#
+# 1. Load automatically (zero-config):
+#    Place this file as versions.yaml in your project root
+#    The library will auto-discover and load it
+#
+# 2. Explicit loading:
+#    version.Initialize(version.WithManifestPath("./config/versions.yaml"))
+#
+# 3. Embed in binary:
+#    //go:embed versions.yaml
+#    var versionsYAML []byte
+#    version.Initialize(version.WithEmbedded(versionsYAML))
+#
+# 4. With validation:
+#    version.Initialize(
+#        version.WithManifestPath("versions.yaml"),
+#        version.WithValidators(
+#            version.NewSchemaValidator("postgres_main", "5"),
+#            version.NewAPIValidator("rest_v1", "1.0.0"),
+#        ),
+#    )
+
+# Best Practices:
+#
+# 1. Version Numbers:
+#    - Use semantic versioning for project version
+#    - Use integers or semantic versions for schemas
+#    - Keep API versions synchronized with documentation
+#
+# 2. Schema Versions:
+#    - Increment on every schema migration
+#    - Use validators to enforce minimum versions
+#    - Document breaking changes in migration notes
+#
+# 3. API Versions:
+#    - Maintain backward compatibility when possible
+#    - Use major version increments for breaking changes
+#    - Keep old API versions supported during transition periods
+#
+# 4. Components:
+#    - Track component versions independently
+#    - Use for microservices or modular architectures
+#    - Coordinate updates across dependent components
+#
+# 5. Custom Metadata:
+#    - Use for deployment-specific information
+#    - Avoid sensitive data (use environment variables instead)
+#    - Keep metadata relevant to version management
+
+# Integration with CI/CD:
+#
+# Update version automatically in your CI/CD pipeline:
+#
+#   # Bump version on release
+#   - yq eval '.project.version = "1.2.3"' -i versions.yaml
+#
+#   # Update schema version after migration
+#   - yq eval '.schemas.postgres_main = "10"' -i versions.yaml
+#
+#   # Add deployment metadata
+#   - yq eval '.custom.deploy_time = "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"' -i versions.yaml
