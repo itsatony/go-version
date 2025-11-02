@@ -35,7 +35,7 @@ manifest_version: "1.0"
 project:
   name: "test-app"
   version: "1.2.3"
-Schemas:
+schemas:
   postgres_main: "47"
   redis_cache: "3"
 `,
@@ -50,10 +50,10 @@ manifest_version: "1.0"
 project:
   name: "test-app"
   version: "1.2.3"
-APIs:
+apis:
   rest_v1: "1.15.0"
   grpc: "1.2.0"
-Components:
+components:
   aigentchat: "3.4.1"
 `,
 			checkFields: func(t *testing.T, m *Manifest) {
@@ -144,7 +144,7 @@ manifest_version: "1.0"
 project:
   name: "embedded-app"
   version: "2.3.4"
-Schemas:
+schemas:
   db: "42"
 `)
 
@@ -166,7 +166,7 @@ manifest_version: "1.0"
 project:
   name: "file-app"
   version: "3.4.5"
-APIs:
+apis:
   rest: "1.0.0"
 `)
 
@@ -333,7 +333,7 @@ manifest_version: "1.0"
 project:
   name: "test-app"
   version: "1.0.0"
-Schemas:
+schemas:
   db: "10"
 `)
 
@@ -367,10 +367,10 @@ manifest_version: "1.0"
 project:
   name: "test-app"
   version: "1.0.0"
-Schemas:
+schemas:
   db1: "10"
   db2: "20"
-APIs:
+apis:
   rest: "1.0.0"
 `)
 
@@ -389,12 +389,12 @@ manifest_version: "1.0"
 project:
   name: "test-app"
   version: "1.0.0"
-Schemas:
+schemas:
   db1: "10"
   db2: "20"
-APIs:
+apis:
   rest: "1.0.0"
-Components:
+components:
   comp1: "1.0.0"
 `)
 

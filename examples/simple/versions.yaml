@@ -9,19 +9,19 @@ project:
   version: "1.2.3"
 
 # Database schema versions (optional)
-Schemas:
+schemas:
   postgres_main: "45"
   redis_cache: "3"
 
 # API versions (optional)
-APIs:
+apis:
   rest_v1: "1.15.0"
 
 # Component versions (optional)
-Components:
+components:
   aigentchat: "3.4.1"
 
 # Custom metadata (optional)
-Custom:
+custom:
   environment: "development"
   region: "us-west-2"

@@ -17,16 +17,16 @@ type Manifest struct {
 	Project ProjectManifest `yaml:"project" json:"project"`
 
 	// Schemas contains database schema versions (e.g., "postgres_main": "47")
-	Schemas map[string]string `yaml:"Schemas,omitempty" json:"schemas,omitempty"`
+	Schemas map[string]string `yaml:"schemas,omitempty" json:"schemas,omitempty"`
 
 	// APIs contains API version numbers (e.g., "rest_v1": "1.15.0")
-	APIs map[string]string `yaml:"APIs,omitempty" json:"apis,omitempty"`
+	APIs map[string]string `yaml:"apis,omitempty" json:"apis,omitempty"`
 
 	// Components contains dependency/component versions (e.g., "aigentchat": "3.4.1")
-	Components map[string]string `yaml:"Components,omitempty" json:"components,omitempty"`
+	Components map[string]string `yaml:"components,omitempty" json:"components,omitempty"`
 
 	// Custom contains any custom version dimensions defined by the user
-	Custom map[string]interface{} `yaml:"Custom,omitempty" json:"custom,omitempty"`
+	Custom map[string]interface{} `yaml:"custom,omitempty" json:"custom,omitempty"`
 }
 
 // ProjectManifest represents the project section of the manifest

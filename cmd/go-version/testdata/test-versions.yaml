@@ -2,15 +2,15 @@ manifest_version: "1.0"
 project:
   name: "cli-test-app"
   version: "1.2.3"
-Schemas:
+schemas:
   postgres_main: "45"
   redis_cache: "3"
-APIs:
+apis:
   rest_v1: "1.15.0"
   grpc: "1.2.0"
-Components:
+components:
   auth_service: "2.1.0"
   notification_service: "1.5.0"
-Custom:
+custom:
   environment: "test"
   region: "us-test-1"

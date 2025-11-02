@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+- **CRITICAL**: Fixed YAML struct tags to use lowercase keys (aligning with YAML conventions)
+  - **Migration required**: Update your `versions.yaml` files to use lowercase keys
+  - Change `Schemas:` → `schemas:`
+  - Change `APIs:` → `apis:`
+  - Change `Components:` → `components:`
+  - Change `Custom:` → `custom:`
+  - This fixes a bug where the implementation used non-standard capitalized YAML keys
+  - Template file (_templates/versions.yaml.tmpl) and documentation were already using correct lowercase format
+  - **Why this change**: YAML convention uses lowercase/snake_case keys (like `manifest_version` and `project`), not mixed case
+  - **Impact**: All existing manifest files must be updated to use lowercase keys
+
 ### Security
 - **BREAKING**: `Reset()` now requires `GO_ENV=test` and panics in production environments
   - Prevents accidental state corruption in production

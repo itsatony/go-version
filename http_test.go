@@ -19,7 +19,7 @@ manifest_version: "1.0"
 project:
   name: "http-test-app"
   version: "1.2.3"
-Schemas:
+schemas:
   db: "10"
 `)
 

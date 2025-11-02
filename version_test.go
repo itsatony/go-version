@@ -237,7 +237,7 @@ manifest_version: "1.0"
 project:
   name: "concurrent-app"
   version: "1.0.0"
-Schemas:
+schemas:
   db1: "10"
   db2: "20"
 `)
@@ -311,7 +311,7 @@ manifest_version: "1.0"
 project:
   name: "validated-app"
   version: "1.0.0"
-Schemas:
+schemas:
   postgres_main: "50"
   redis_cache: "5"
 `)
@@ -340,7 +340,7 @@ manifest_version: "1.0"
 project:
   name: "old-schema-app"
   version: "1.0.0"
-Schemas:
+schemas:
   postgres_main: "40"
 `)
 
@@ -385,7 +385,7 @@ manifest_version: "1.0"
 project:
   name: "new-validated"
   version: "1.0.0"
-Schemas:
+schemas:
   db: "10"
 `)
 
@@ -409,11 +409,11 @@ manifest_version: "1.0"
 project:
   name: "multi-opt-app"
   version: "1.0.0"
-Schemas:
+schemas:
   db: "10"
-APIs:
+apis:
   rest: "1.0.0"
-Components:
+components:
   chat: "2.0.0"
 `)
 
@@ -519,7 +519,7 @@ manifest_version: "1.0"
 project:
   name: "bench-app"
   version: "1.0.0"
-Schemas:
+schemas:
   db: "45"
   cache: "12"
   messaging: "3"
@@ -545,7 +545,7 @@ manifest_version: "1.0"
 project:
   name: "bench-app"
   version: "1.0.0"
-APIs:
+apis:
   rest: "2.0"
   graphql: "1.5"
   grpc: "1.0"
@@ -569,12 +569,12 @@ manifest_version: "1.0"
 project:
   name: "bench-app"
   version: "1.2.3"
-Schemas:
+schemas:
   db: "45"
   cache: "12"
-APIs:
+apis:
   rest: "2.0"
-Components:
+components:
   cache: "1.5"
 `)
 
@@ -856,7 +856,7 @@ manifest_version: "1.0"
 project:
   name: "strict-validated-app"
   version: "1.0.0"
-Schemas:
+schemas:
   postgres_main: "50"
 `)
 
@@ -884,7 +884,7 @@ manifest_version: "1.0"
 project:
   name: "strict-fail-app"
   version: "1.0.0"
-Schemas:
+schemas:
   postgres_main: "40"
 `)
 
@@ -957,7 +957,7 @@ manifest_version: "1.0"
 project:
   name: "test-app"
   version: "1.0.0"
-Schemas:
+schemas:
   db: "10"
 `)
 
