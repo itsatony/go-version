@@ -99,6 +99,11 @@ Output:
 }
 ```
 
+`git.tree_state` is one of `clean`, `dirty` or `unknown`. `unknown` means the
+binary could not determine its tree state (nothing injected via ldflags, no VCS
+build info and no reachable git working copy). It is a stated third answer and
+must not be read as `clean`.
+
 ### Compact format
 ```bash
 go-version -compact

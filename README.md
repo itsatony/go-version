@@ -431,9 +431,38 @@ Inject git and build metadata at compile time using ldflags:
 go build -ldflags="\
   -X github.com/itsatony/go-version.GitCommit=$(git rev-parse HEAD) \
   -X github.com/itsatony/go-version.GitTag=$(git describe --tags --always) \
+  -X github.com/itsatony/go-version.GitTreeState=$(test -z "$(git status --porcelain)" && echo clean || echo dirty) \
   -X github.com/itsatony/go-version.BuildTime=$(date -u '+%Y-%m-%dT%H:%M:%SZ') \
   -X github.com/itsatony/go-version.BuildUser=$(whoami)"
 ```
+
+### Git Tree State: clean, dirty, unknown
+
+`Git.TreeState` has **three** readings and they must not be collapsed:
+
+| Value | Meaning |
+|---|---|
+| `clean` | The working tree had no uncommitted changes. A positive statement. |
+| `dirty` | The working tree had uncommitted changes. A positive statement. |
+| `unknown` | Nobody could tell. No injected value, no VCS build info, no reachable git working copy. |
+
+`unknown` is the default (`DefaultGitTreeState`) precisely because a binary that
+cannot determine its own tree state must not claim it was clean. An operator
+reading `tree_state: clean` beside `commit: dev` is being told something the
+binary cannot know.
+
+The state is resolved from the first source that can answer:
+
+1. `-X ...GitTreeState=` ldflags injection (always wins, except that VCS
+   `vcs.modified=true` still marks the tree dirty);
+2. `runtime/debug.BuildInfo`'s `vcs.modified` setting (both `true` and `false`
+   are evidence);
+3. `git status --porcelain` in the build/run directory, if a whitelisted git
+   binary is reachable;
+4. otherwise `unknown`.
+
+Inject it in CI, where the module VCS stamp is usually absent (`-trimpath`,
+`CGO_ENABLED=0` container builds and `go build` from a tarball all drop it).
 
 ### Makefile Example
 
@@ -443,8 +472,11 @@ COMMIT := $(shell git rev-parse HEAD)
 BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 BUILD_USER := $(shell whoami)
 
+TREE_STATE := $(shell test -z "$$(git status --porcelain 2>/dev/null)" && echo clean || echo dirty)
+
 LDFLAGS := -X github.com/itsatony/go-version.GitCommit=$(COMMIT)
 LDFLAGS += -X github.com/itsatony/go-version.GitTag=$(VERSION)
+LDFLAGS += -X github.com/itsatony/go-version.GitTreeState=$(TREE_STATE)
 LDFLAGS += -X github.com/itsatony/go-version.BuildTime=$(BUILD_TIME)
 LDFLAGS += -X github.com/itsatony/go-version.BuildUser=$(BUILD_USER)
 
@@ -462,6 +494,7 @@ build:
     go build -ldflags="\
       -X github.com/itsatony/go-version.GitCommit=${{ github.sha }} \
       -X github.com/itsatony/go-version.GitTag=${{ github.ref_name }} \
+      -X github.com/itsatony/go-version.GitTreeState=clean \
       -X github.com/itsatony/go-version.BuildTime=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 ```
 

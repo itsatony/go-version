@@ -469,7 +469,7 @@ type ProjectVersion struct {
 type GitInfo struct {
 	Commit       string `json:"commit"`
 	Tag          string `json:"tag,omitempty"`
-	TreeState    string `json:"tree_state"` // clean, dirty
+	TreeState    string `json:"tree_state"` // clean, dirty, unknown
 	CommitTime   string `json:"commit_time,omitempty"`
 }
 

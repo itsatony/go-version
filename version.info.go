@@ -89,7 +89,12 @@ type GitInfo struct {
 	// Tag is the git tag (if any) for this commit
 	Tag string `json:"tag,omitempty"`
 
-	// TreeState indicates whether there were uncommitted changes ("clean" or "dirty")
+	// TreeState indicates whether there were uncommitted changes at build time.
+	//
+	// One of GitTreeStateClean, GitTreeStateDirty or GitTreeStateUnknown. It is
+	// never omitted from JSON and is never empty: "unknown" is a stated third
+	// answer meaning the build could not determine the tree state, and it must not
+	// be read as "clean".
 	TreeState string `json:"tree_state"`
 
 	// CommitTime is the timestamp of the commit

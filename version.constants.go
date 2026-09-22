@@ -17,8 +17,14 @@ const (
 	// DefaultGitCommit is used when git info is unavailable
 	DefaultGitCommit = "dev"
 
-	// DefaultGitTreeState is used when git status cannot be determined
-	DefaultGitTreeState = "clean"
+	// DefaultGitTreeState is used when git status cannot be determined.
+	//
+	// It is deliberately GitTreeStateUnknown and NOT GitTreeStateClean: "the tree
+	// was clean" and "nobody could tell what the tree was" are two different facts
+	// and must not share a field. A binary built without tree-state injection and
+	// without VCS build info knows nothing about its tree, and saying "clean" there
+	// is a false statement served on every /version endpoint.
+	DefaultGitTreeState = GitTreeStateUnknown
 
 	// DefaultBuildTime is used when build time is not injected
 	DefaultBuildTime = "unknown"
@@ -79,6 +85,13 @@ const (
 
 	// GitTreeStateDirty indicates uncommitted changes present
 	GitTreeStateDirty = "dirty"
+
+	// GitTreeStateUnknown indicates the tree state could not be determined.
+	//
+	// This is a third, distinct fact - neither clean nor dirty. It is reported when
+	// the binary carries no injected tree state, no VCS build info and no reachable
+	// git working copy. Treat it as "no evidence", never as "clean".
+	GitTreeStateUnknown = "unknown"
 )
 
 // Git command components
@@ -121,6 +134,10 @@ const (
 
 	// VCSValueTrue is the string value "true" for VCS modified flag
 	VCSValueTrue = "true"
+
+	// VCSValueFalse is the string value "false" for VCS modified flag.
+	// Its presence is positive evidence that the tree was clean at build time.
+	VCSValueFalse = "false"
 )
 
 // Error messages

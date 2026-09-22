@@ -276,6 +276,10 @@ func TestEnrichWithGitInfo(t *testing.T) {
 	// Set ldflags variables
 	GitCommit = "abc123def456"
 	GitTag = "v1.2.3"
+	// NOTE: this assertion only has teeth because DefaultGitTreeState is
+	// GitTreeStateUnknown. While the default was "clean" it passed vacuously -
+	// the expected value equalled the value the Info was seeded with, so the
+	// injection branch could be deleted entirely without reddening this test.
 	GitTreeState = GitTreeStateClean
 
 	enrichWithGitInfo(info)
@@ -471,19 +475,19 @@ func TestIsValidCommitHash(t *testing.T) {
 func TestGetGitBinary_Security(t *testing.T) {
 	// This test verifies that git binary location validation works
 	// We can't easily mock exec.LookPath, but we can at least verify the function runs
-	
+
 	result := getGitBinary()
-	
+
 	// On Unix systems, if git is found, it should be in a whitelisted location
 	if runtime.GOOS != "windows" && result != "" {
-		whitelisted := result == "/usr/bin/git" || 
-			result == "/usr/local/bin/git" || 
+		whitelisted := result == "/usr/bin/git" ||
+			result == "/usr/local/bin/git" ||
 			result == "/opt/homebrew/bin/git"
-		
-		assert.True(t, whitelisted, 
+
+		assert.True(t, whitelisted,
 			"git binary should be in whitelisted location, got: %s", result)
 	}
-	
+
 	// If result is empty, that's also acceptable (git not found or not whitelisted)
 	// The function shouldn't panic or error
 }
@@ -493,15 +497,15 @@ func TestGetGitCommit_Validation(t *testing.T) {
 	// This test verifies that getGitCommit properly validates output
 	// We can't control git output easily, but we can verify it returns
 	// either empty string or valid hash
-	
+
 	result := getGitCommit()
-	
+
 	// If we got a result, it must be a valid hash
 	if result != "" {
-		assert.True(t, isValidCommitHash(result), 
+		assert.True(t, isValidCommitHash(result),
 			"getGitCommit returned invalid hash: %q", result)
 	}
-	
+
 	// Empty result is acceptable (not in git repo, git not found, etc.)
 }
 
@@ -509,7 +513,7 @@ func TestGetGitCommit_Validation(t *testing.T) {
 func TestGetGitTag_Security(t *testing.T) {
 	// Verify getGitTag doesn't panic and returns reasonable values
 	result := getGitTag()
-	
+
 	// Should return either empty string or a non-empty tag
 	// If not empty, should not contain obviously malicious content
 	if result != "" {

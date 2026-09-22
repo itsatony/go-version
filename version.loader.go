@@ -30,7 +30,13 @@ var (
 	// GitTag is the git tag, injected via ldflags
 	GitTag = ""
 
-	// GitTreeState is the git tree state (clean/dirty), injected via ldflags
+	// GitTreeState is the git tree state, injected via ldflags.
+	//
+	// Its zero value is DefaultGitTreeState ("unknown"), which doubles as the
+	// "nothing was injected" sentinel - see applyLdflagsGitInfo. Inject one of
+	// GitTreeStateClean or GitTreeStateDirty:
+	//
+	//	-X github.com/itsatony/go-version.GitTreeState=$(git status --porcelain | head -c1 | grep -q . && echo dirty || echo clean)
 	GitTreeState = DefaultGitTreeState
 
 	// BuildTime is the build timestamp, injected via ldflags
@@ -176,6 +182,8 @@ func manifestToInfo(m *Manifest) *Info {
 			Version: m.Project.Version,
 		},
 		Git: GitInfo{
+			// Both defaults are "no evidence" sentinels ("dev" / "unknown"), not
+			// claims. Git enrichment replaces them when it can answer.
 			Commit:    DefaultGitCommit,
 			TreeState: DefaultGitTreeState,
 		},
@@ -233,7 +241,17 @@ func enrichWithGitInfo(info *Info) {
 	applyGitCommandFallback(info)
 }
 
-// applyLdflagsGitInfo applies git information from ldflags injection
+// applyLdflagsGitInfo applies git information from ldflags injection.
+//
+// Each field is compared against its default, which serves as the "not injected"
+// sentinel. For the tree state this comparison only says what it is meant to say
+// because DefaultGitTreeState is GitTreeStateUnknown: an injected value of
+// "clean" or "dirty" is a statement and is always applied.
+//
+// While the default was "clean", a build system that truthfully injected
+// GitTreeState=clean was byte-indistinguishable from one that injected nothing,
+// and its statement was silently discarded. Do not restore that default without
+// also rewriting this comparison.
 func applyLdflagsGitInfo(info *Info) {
 	if GitCommit != DefaultGitCommit {
 		info.Git.Commit = GitCommit
@@ -252,8 +270,20 @@ func applyBuildInfoGitData(info *Info) {
 	if !ok {
 		return
 	}
+	applyVCSSettings(info, buildInfo.Settings)
+}
 
-	for _, setting := range buildInfo.Settings {
+// applyVCSSettings applies runtime/debug VCS build settings to Info.
+//
+// Split out of applyBuildInfoGitData so the tree-state decision can be driven
+// directly in tests; debug.ReadBuildInfo() cannot be controlled from a test binary.
+//
+// vcs.modified carries BOTH answers: "true" is positive evidence of a dirty tree
+// and "false" is positive evidence of a clean one. Reading only the "true" arm
+// left a clean module build reporting the default - which was "clean" by accident
+// before and would be "unknown" now, discarding an answer the toolchain supplied.
+func applyVCSSettings(info *Info, settings []debug.BuildSetting) {
+	for _, setting := range settings {
 		switch setting.Key {
 		case VCSKeyRevision:
 			if info.Git.Commit == DefaultGitCommit {
@@ -264,8 +294,14 @@ func applyBuildInfoGitData(info *Info) {
 				info.Git.CommitTime = setting.Value
 			}
 		case VCSKeyModified:
-			if setting.Value == VCSValueTrue {
+			switch setting.Value {
+			case VCSValueTrue:
 				info.Git.TreeState = GitTreeStateDirty
+			case VCSValueFalse:
+				// Never override an explicit ldflags injection with build info.
+				if info.Git.TreeState == DefaultGitTreeState {
+					info.Git.TreeState = GitTreeStateClean
+				}
 			}
 		}
 	}
@@ -281,6 +317,11 @@ func applyGitCommandFallback(info *Info) {
 	if info.Git.Tag == "" {
 		if tag := getGitTag(); tag != "" {
 			info.Git.Tag = tag
+		}
+	}
+	if info.Git.TreeState == DefaultGitTreeState {
+		if state := getGitTreeState(); state != "" {
+			info.Git.TreeState = state
 		}
 	}
 }
@@ -440,4 +481,41 @@ func getGitTag() string {
 		return ""
 	}
 	return strings.TrimSpace(string(output))
+}
+
+// getGitTreeState tries to determine the working tree state via git status.
+// Returns GitTreeStateClean, GitTreeStateDirty, or "" when the question could not
+// be answered - "" is the caller's signal to leave the state unknown rather than
+// to assume anything.
+//
+// SECURITY:
+//   - Uses getGitBinary() to validate git binary location
+//   - Uses CommandContext with timeout to prevent hangs
+//   - Git command arguments are constants to prevent command injection
+//   - Only the emptiness of the output is read; its content is never propagated
+func getGitTreeState() string {
+	gitBinary := getGitBinary()
+	if gitBinary == "" {
+		return ""
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), gitCommandTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, gitBinary, GitCmdStatus, GitArgPorcelain)
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+
+	return treeStateFromStatusOutput(string(output))
+}
+
+// treeStateFromStatusOutput maps `git status --porcelain` output to a tree state.
+// Empty output means no uncommitted changes; anything else means there are some.
+func treeStateFromStatusOutput(output string) string {
+	if strings.TrimSpace(output) == "" {
+		return GitTreeStateClean
+	}
+	return GitTreeStateDirty
 }

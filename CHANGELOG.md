@@ -7,6 +7,100 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-22
+
+### ⚠️ BREAKING BEHAVIOUR CHANGE — read this before upgrading
+
+**`DefaultGitTreeState` changed from `"clean"` to `"unknown"`.** Every binary that
+does not inject a tree state via ldflags and carries no VCS build info now serves
+`{"git":{"tree_state":"unknown"}}` on `/version` where it previously served
+`"clean"`.
+
+**If you have a test asserting `tree_state == "clean"` on an un-stamped build, it
+will go red — and that redness is correct.** The old value was not a modest
+fallback, it was a false statement: a binary with `"commit":"dev"` and
+`"tree_state":"clean"` was telling an operator something it could not know.
+`clean` and `unknown` are two different facts and must not share a field.
+
+**Why this is a MINOR and not a MAJOR bump.** The Go API surface is unchanged and
+purely additive — no identifier is removed, renamed or retyped, every existing
+`switch`/comparison still compiles, and `GitTreeStateUnknown` is new. What changed
+is the *value* of a documented constant and therefore the JSON a service emits.
+A major bump on this module would require a `/v2` module path, forcing an import
+rewrite in ~25 fleet repositories for a one-constant change, and without the path
+change a `v2.0.0` tag would simply never be resolved by `go get` — the worse of
+the two failure modes. The compatibility break is real but is in the *output*
+contract, so it is announced loudly here instead.
+
+**Remedy for anyone who wants `clean` back:** stamp it truthfully at build time —
+`-X github.com/itsatony/go-version.GitTreeState=clean` now actually takes effect
+(see below). Container images built from a source tree without `.git/` have no
+other channel.
+
+### Added
+- `GitTreeStateUnknown = "unknown"` — the third, distinct tree state, meaning the
+  build could not determine whether the working tree was clean or dirty.
+- `VCSValueFalse` — the `"false"` reading of `runtime/debug.BuildInfo`'s
+  `vcs.modified` setting, which is positive evidence of a *clean* tree.
+- `git status --porcelain` fallback (`getGitTreeState`): when no tree state was
+  injected and no VCS build info is present, the tree state is now resolved from a
+  reachable git working copy. Uses the same hardened path as the existing git
+  calls — whitelisted binary location, constant arguments, 5s `CommandContext`
+  timeout — and reads only whether the output is empty, never its content. The
+  `GitCmdStatus` / `GitArgPorcelain` constants had been declared since 1.0.0 and
+  used by nothing.
+- `applyVCSSettings(*Info, []debug.BuildSetting)`, split out of
+  `applyBuildInfoGitData` so the tree-state decision is drivable from tests;
+  `debug.ReadBuildInfo()` cannot be controlled from a test binary.
+- `treeStateFromStatusOutput(string) string`, a pure mapping from git status
+  output to a tree state.
+- `Makefile` now stamps `GitTreeState`, so this repo's own CLI stops making a
+  claim it could not support.
+- README section "Git Tree State: clean, dirty, unknown" documenting the three
+  readings and the four-step resolution order.
+
+### Changed
+- `DefaultGitTreeState` is now `GitTreeStateUnknown` (see the banner above).
+- **`-X ...GitTreeState=clean` now takes effect.** `applyLdflagsGitInfo` decides
+  "was anything injected?" by comparing the injected value against the default,
+  which doubles as the not-injected sentinel. While that default was `"clean"`, a
+  build system that *truthfully* injected `clean` was byte-indistinguishable from
+  one that injected nothing and its statement was silently discarded; the output
+  happened to be `clean` either way, so nothing ever showed it. With an `unknown`
+  sentinel the comparison finally says what it was always meant to say. The
+  comparison was deliberately kept rather than rewritten, and the reasoning is now
+  a comment above it so the old default cannot be restored without noticing.
+- **`vcs.modified=false` is now read as evidence of a clean tree.** The VCS arm
+  previously read only the `"true"` case, so on a module build from a genuinely
+  clean, VCS-stamped clone the toolchain had answered the question and the answer
+  was dropped. Before this release that was invisible (the default was `clean`
+  anyway); after it, leaving the arm unread would have traded a false `clean` for
+  a lost true one. An explicit ldflags injection is never overridden by this arm.
+- `GitInfo.TreeState`'s documentation now states all three readings and that
+  `unknown` must never be read as `clean`. The field keeps no `omitempty`, so
+  `unknown` is always on the wire and is never degraded to `""` — `""` remains a
+  distinct (and invalid) reading meaning "nobody set this field".
+
+### Fixed
+- A binary that cannot determine its own tree state no longer claims it was clean.
+  This is the whole point of the release: `/version` is the remedy for weak build
+  provenance and it was able to lie.
+
+### Tests
+- New `treestate_test.go` with 12 guards covering: the default not being a
+  confident `clean`; the three states being distinct, non-empty wire values; an
+  injected `clean` reaching the `Info`; both `vcs.modified` readings; an absent
+  and an unrecognised `vcs.modified` leaving the state `unknown`; ldflags
+  precedence over the VCS clean arm; the status-output mapping; the git fallback
+  not overriding an already-answered state; and `unknown` surviving JSON
+  marshal/unmarshal and `LogFields()`.
+- Each guard was verified by mutation — six mutations, each confirmed to COMPILE
+  before being judged, each reddening a named test.
+- `TestEnrichWithGitInfo` (pre-existing) passed vacuously before this release: it
+  seeded the `Info` with `DefaultGitTreeState`, injected `GitTreeStateClean` and
+  asserted `clean`, so the injection branch could have been deleted entirely
+  without reddening it. It now has teeth, and carries a comment saying so.
+
 ## [1.0.0] - 2025-11-02
 
 ### Breaking Changes

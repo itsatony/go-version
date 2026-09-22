@@ -8,11 +8,13 @@ GIT_COMMIT := $(shell git rev-parse HEAD 2>/dev/null || echo "dev")
 GIT_TAG := $(shell git describe --tags --always 2>/dev/null || echo "v0.0.0")
 BUILD_TIME := $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 BUILD_USER := $(shell whoami)
+GIT_TREE_STATE := $(shell test -z "$$(git status --porcelain 2>/dev/null)" && echo clean || echo dirty)
 
 # Build flags
 LDFLAGS := -s -w
 LDFLAGS += -X github.com/itsatony/go-version.GitCommit=$(GIT_COMMIT)
 LDFLAGS += -X github.com/itsatony/go-version.GitTag=$(GIT_TAG)
+LDFLAGS += -X github.com/itsatony/go-version.GitTreeState=$(GIT_TREE_STATE)
 LDFLAGS += -X github.com/itsatony/go-version.BuildTime=$(BUILD_TIME)
 LDFLAGS += -X github.com/itsatony/go-version.BuildUser=$(BUILD_USER)
 
